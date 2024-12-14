@@ -1,0 +1,115 @@
+using UnityEngine;
+
+public class PlayerMovement : MonoBehaviour
+{
+    public float moveSpeed = 5f;
+    public ParticleSystem movementParticles;
+
+    void Update()
+    {
+        float move = Input.GetAxis("Horizontal");
+        transform.Translate(Vector3.right * move * moveSpeed * Time.deltaTime);
+
+        if (move != 0 && !movementParticles.isPlaying)
+        {
+            movementParticles.Play();
+        }
+        else if (move == 0)
+        {
+            movementParticles.Stop();
+        }
+    }
+}
+
+public class Bonus : MonoBehaviour
+{
+    private Animator animator;
+
+    void Start()
+    {
+        animator = GetComponent<Animator>();
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            animator.SetBool("IsTriggered", true);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            animator.SetBool("IsTriggered", false);
+        }
+    }
+}
+
+public class Coin : MonoBehaviour
+{
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            other.GetComponent<Wallet>().AddCoin();
+            Destroy(gameObject); // Удаляем монету после сбора
+        }
+    }
+}
+
+public class Wallet : MonoBehaviour
+{
+    public int coins = 0;
+
+    public void AddCoin()
+    {
+        coins++;
+        Debug.Log("Coins: " + coins);
+    }
+}
+
+public class ExplosiveBarrel : MonoBehaviour
+{
+    public float explosionForce = 10f;
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            Destroy(collision.gameObject); // Уничтожаем игрока
+        }
+    }
+}
+
+public class MovingObstacle : MonoBehaviour
+{
+    public float damage = 10f;
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
+            if (playerHealth != null)
+            {
+                playerHealth.TakeDamage(damage);
+            }
+        }
+    }
+}
+
+public class PlayerHealth : MonoBehaviour
+{
+    public float health = 100f;
+
+    public void TakeDamage(float amount)
+    {
+        health -= amount;
+        if (health <= 0)
+        {
+            Destroy(gameObject); // Уничтожаем игрока
+        }
+    }
+}
